@@ -1,0 +1,871 @@
+/ *
+格来说，C语言中并没有直接创建动态数组的方法。
+变量别的语言，C语言允许使用int a [n]（n为变量）的方式定义动态数组，通过采用指针类型函数创建动态存储区，继而实现动态层叠的效果，要使用这些函数，需要我们了解指针的用法。
+在stdlib库中提供了几个创建动态存储区的指针类型函数，通过调用这些函数，可以让我们实现创建动态叠加的效果。
+下面分别介绍每个函数的使用方法：
+1. void * malloc（unsigned int size）
+函数作用：开辟一个长度为大小的连续空间，函数的返回值是所分配区域的第一个字节的地址，开辟空间失败返回NULL
+形参size的类型定义为无符号类型，表示开辟空间的长度
+要注意该指针的基类型是void，即不指向任何类型的数据。
+4.无空（void * p）
+函数作用：释放指针p所指向的动态空间。
+参数p是void类型的指针变量，要指向一个动态存储区
+该函数意味如其名，便不用代码演示，读者可自己上机操作。
+总结：C语言中定义动态数组的方法归根到底怎么说还是操作指针，通过指针类型函数创建一个连续的动态存储区，用指针变量指向该存储区的第一个字节的地址，长袍进行操作，所以，理解并掌握指针，是学习C语言的必经之路！美丽研究院
+活动入口：京东app首页-美妆馆-底部中间按钮
+只支持Node.js支持N个京东账号
+脚本兼容：Node.js
+cron 1 7,12,19 * * * jd_beauty.js
+ * /
+const  $  =  new  Env （'美丽研究院' ）;
+
+const  notify  =  $ 。isNode （）？要求（'./sendNotify' ）：'' ;
+//Node.js用户请在jdCookie.js处填充京东ck;
+const  jdCookieNode  =  $ 。isNode （）？require （'./jdCookie.js' ）：'' ;
+// const WebSocket = $ .isNode（）吗？require（'websocket'）。w3cwebsocket：SockJS;
+让 jdNotify  =  true ; //是否关闭通知，false打开通知推送，true关闭通知推送
+const  randomCount  =  $ 。isNode （）？20：5 ;
+const  bean  =  500
+// IOS等用户直接用NobyDa的jd cookie
+让 cookiesArr  =  [ ] ， cookie  =  '' ， 消息， helpInfo ， ADD_CART  =  false ;
+
+如果 （$ 。isNode （）） {
+  对象。键（jdCookieNode ）。forEach （（项目） =>  {
+    cookiesArr 。推送（jdCookieNode [ item ] ）
+  } ）
+  如果 （过程。ENV 。JD_DEBUG  && 过程。ENV 。JD_DEBUG  ===  '假' ） 的控制台。log  =  （） =>  { } ;
+} 其他 {
+  让 cookiesData  =  $ 。getdata （'CookiesJD' ） ||  “ []” ；
+  cookiesData  =  jsonParse （cookiesData ）;
+  cookiesArr  =  cookiesData 。映射（项 => 项。饼干）;
+  cookiesArr 。反向（）;
+  cookiesArr 。推（ ... [ $ 。的GetData （'CookieJD2' ）， $ 。的GetData （'CookieJD' ）] ）; 
+  cookiesArr 。反向（）;
+  cookiesArr  =  cookiesArr 。过滤器（item  =>  item！== “”  &&  item！== null  &&  item！== undefined ）;
+}
+const  JD_API_HOST  =  'https: //api.m.jd.com/client.action ' ;
+！（异步 （） =>  {
+  如果 （！cookiesArr [ 0 ] ） {
+    $ 。msg （$ 。name ， '【提示】请先获取京东账号一cookie \ n直接使用NobyDa的京东签到获取' ， 'https: //bean.m.jd.com/ ' ， { “ open-url”：“ https://bean.m.jd.com/” } ）；
+    回报;
+  }
+  helpInfo  =  [ ]
+  对于 （让 我 =  0 ; 我 <  cookiesArr 。长度; 我++ ） {
+    如果 （cookiesArr [ i ] ） {
+      cookie  =  cookiesArr [ i ] ；
+      $ 。用户名 =  decodeURIComponent （饼干。匹配（/ pt_pin = （。+？） ; / ） && 饼干。匹配（/ pt_pin = （。+？） ; / ）[ 1 ] ）
+      $ 。指数 =  i  +  1 ;
+      $ 。isLogin  =  true ;
+      $ 。nickName  =  '' ;
+      消息 =  '' ;
+      等待 TotalBean （）;
+      控制台。日志（`\ n ******开始【京东账号$ { $ 。索引}】$ { $ 。昵称 ||  $ 。用户名} ********* \ N` ）;
+      如果 （！$ 。isLogin ） {
+        $ 。味精（$ 。名称， `【提示】饼干已失效` ， `京东账号$ { $ 。指数}  $ { $ 。绰号 ||  $ 。用户名} \ n请重新登录获取\ nhttps：//bean.m。 jd.com /` ， { “ open-url”：“ https://bean.m.jd.com/” } ）；
+
+        如果 （$ 。isNode （）） {
+          等待 通知。sendNotify （` $ { $ 。名}饼干已失效- $ { $ 。用户名} ` ， `京东账号$ { $ 。指数}  $ { $ 。用户名} \ n请重新登录获取cookie` ）;
+        }
+        继续
+      }
+      等待 jdBeauty （）
+      helpInfo  =  $ 。helpInfo
+    }
+  }
+} ）（）
+  。抓（（e ） =>  {
+    $ 。日志（'' ， `❌ $ { $ 。名字}，失败原因：$ { é } `！ ， '' ）
+  } ）
+  。最后（（） =>  {
+    $ 。完成（）;
+  } ）
+
+异步 函数 jdBeauty （） {
+  $ 。hasDone  = 假
+  等待 getIsvToken （）
+  等待 getIsvToken2 （）
+  等待 getToken （）
+  等待 先生（）
+  while  （！$ 。hasDone ） {
+    等待 $ 。等待（1000 ）
+  }
+  等待 showMsg （）;
+}
+
+异步 功能 mr （） {
+  $ 。硬币 =  0
+  $ 。初始化 = 假
+  让 positionList  =  [ 'b1' ， 'h1' ， 's1' ， 'b2' ， 'h2' ， 's2' ]
+  $ 。令牌 =  [ ]
+  $ 。pos  =  [ ]
+  $ 。helpInfo  =  [ ]
+  const  WebSocket  =  require （'websocket' ）。w3cwebsocket
+  让 客户端 = 新 的WebSocket （`WSS：//xinruimz-isv.isvjcloud.com/wss/令牌= {$ $ 。令牌} ` ）
+  客户。onopen  = 异步 （） =>  {
+    控制台。日志（`美容研究院服务器连接成功` ）；
+    客户。发送（'{“ msg”：{“ type”：“ action”，“ args”：{“ source”：1}，“ action”：“ _ init_”}}'' ）;
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{“ source”：“ meizhuangguandibudaohanghang”}，“ action”：“ stats”}}` ）
+    while  （！$ 。init ） {
+      客户。发送（`ping` ）
+      等待 $ 。等待（1000 ）
+    }
+    对于 （我们 帮助 的 HELPINFO ） {
+      客户。发送（帮助）
+    }
+    等待 $ 。等待（1000 ）
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ shop_products”}}` ）
+    //获得可生产的原料列表
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ get_produce_material”}}` ）
+    等待 $ 。等待（1000 ）
+    //获得原料生产列表
+    控制台。日志（`========原料生产信息========` ）
+    对于 （让 POS 的 positionList ） {
+      客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{“ position”：“ $ { pos } ”}，“ action”：“ produce_position_info”}}`} ）
+      //等待$ .wait（500）
+    }
+    //获得正在生产的商品信息
+    客户。发送（'{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ product_production”}}'' ）
+    等待 $ 。等待（1000 ）
+    //获得库存
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ get_package”}}` ）
+    //获得可生成的商品列表
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{“ page”：1，“ num”：10}，“ action”：“ product_lists”}}` ）
+    等待 $ 。等待（1000 ）
+    //获得任务
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ get_task”}}` ）
+    //获取个人信息
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{“ source”：1}，“ action”：“ get_user”}}` ）
+    等待 $ 。等待（1000 ）
+    //获得福利中心
+    客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ get_benefit”}}} ）
+  } ;
+
+  客户。onclose  =  （） =>  {
+    控制台。日志（`本次运行获得美妆币$ { $ 。硬币} ` ）
+    // console.log（'服务器连接关闭'）;
+    $ 。hasDone  =  true
+    对于 （让 我 =  0 ; 我 <  $ 。POS 。长度 && 我 <  $ 。令牌。长度;  ++我） {
+      $ 。helpInfo 。推（`{ “msg”中：{ “类型”： “动作”， “ARGS”：{ “inviter_id”： “ $ { $ 。USERINFO 。ID } ”， “位置”：” $ { $ 。POS [我] } “ ”标记“：” $ { $ 。令牌[我] } “}，”行动“：”雇员“}}` ）
+    }
+    控制台。日志（$ 。HELPINFO ）
+  } ;
+  客户。onmessage  = 异步 函数 （e ） {
+    如果 （Ë 。数据！== '傍'  &&  safeGet （ē 。数据）） {
+      让 VO  =  jsonParse （Ë 。数据）
+      开关 （VO 。动作） {
+        情况 “ get_ad”：
+          控制台。日志（`当期活动：$ { VO 。数据。屏幕。名} ` ）
+          如果 （VO 。数据。check_sign_in  ===  1 ） {
+            //去签到
+            控制台。日志（`去做签到任务` ）
+            客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ sign_in”}}` ）
+            客户。发送（`{“ msg”：{“ action”：“ write”，“ type”：“ action”，“ args”：{“ action_type”：1，“ channel”：2，“ source_app”：2}}}} ` ）
+          }
+          休息
+        案例 “ get_user”：
+          $ 。userInfo  =  vo 。数据
+          $ 。合计 =  vo 。数据。硬币
+          如果 （$ 。USERINFO 。新人 ===  0 ） {
+            控制台。日志（`做新手任务` ）
+            对于 （让 我 =  $ 。USERINFO 。步骤; 我 <  15 ;  ++我） {
+              客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ newcomer_update”}}` ）
+              等待 $ 。等待（500 ）
+            }
+          } 其他
+            $ 。初始化 =  true
+          控制台。日志（`当前美妆币$ { $ 。总} ` ）
+          休息
+        案例 “ shop_products”：
+          让 count  =  $ 。taskState 。shop_view 。长度
+          if  （count  <  5 ） 控制台。日志（`去做关注店铺任务` ）
+          对于 （让 我 =  0 ; 我 <  VO 。数据。商店。长度 && 计数 <  5 ;  ++我） {
+            const  shop  =  vo 。数据。商店[ i ]
+            如果 （！$ 。taskState 。shop_view 。包括（店。ID ）） {
+              数++
+              控制台。日志（`去做关注店铺【$ {店。名}】` ）
+              客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “shop_id”：$ {店。ID } }， “行动”： “shop_view”}}` ）
+              客户。发送（`{“ msg”：{“ action”：“ write”，“ type”：“ action”，“ args”：{“ action_type”：6，“ channel”：2，“ source_app”：2，“ vender “：” $ {店。vender_id } “}}}` ）
+            }
+            等待 $ 。等待（1000 ）
+          }
+          count  =  $ 。taskState 。product_adds 。长度
+          if  （计数 <  5  &&  ADD_CART ） 控制台。日志（`做浏览并加购任务` ）
+          对于 （让 我 =  0 ; 我 <  VO 。数据。产品。长度 && 计数 <  5  &&  ADD_CART ;  ++我） {
+            const  product  =  vo 。数据。产品[ i ]
+            如果 （！$ 。taskState 。product_adds 。包括（产品。ID ）） {
+              数++
+              控制台。日志（`去加购商品【$ {产品。名}】` ）
+              客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “add_product_id”：$ {产品。ID } }， “行动”： “add_product_view”}}` ）
+              客户。发送（`{“ msg”：{“ action”：“ write”，“ type”：“ action”，“ args”：{“ action_type”：9，“ channel”：2，“ source_app”：2，“ vender “：” $ {产品。ID } “}}}` ）
+              客户。发送（`{“ msg”：{“ action”：“ write”，“ type”：“ action”，“ args”：{“ action_type”：5，“ channel”：2，“ source_app”：2，“ vender “：” $ {产品。ID } “}}}` ）
+            }
+            等待 $ 。等待（1000 ）
+          }
+          对于 （让 我 =  $ 。taskState 。meetingplace_view ; 我 <  $ 。taskState 。mettingplace_count ;  ++我） {
+            控制台。日志（`去做第$ { i  +  1 }次浏览会场任务` ）
+            客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{“ source”：1}，“ action”：“ meetingplace_view”}}` ）
+            等待 $ 。等待（2000 ）
+          }
+          如果 （$ 。taskState 。today_answered  ===  0 ） {
+            控制台。日志（`去做每日问答任务` ）
+            客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{“ source”：1}，“ action”：“ get_question”}}} ）
+          }
+          休息
+        情况 “ check_up”：
+          $ 。taskState  =  vo 。数据
+          // 6-9点签到
+          对于 （让 check_up 的 VO 。数据。check_up ） {
+            如果 （check_up [ 'receive_status' ]！== 1 ） {
+              控制台。日志（`去领取第$ { check_up 。倍}次签到奖励` ）
+              客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “check_up_id”：$ { check_up 。ID } }， “行动”： “check_up_receive”}}` ）
+            } 其他 {
+              控制台。日志（`第$ { check_up 。倍}次签到奖励已领取` ）
+            }
+          }
+          休息
+        案例 'newcomer_update'：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            控制台。日志（`第$ { VO 。数据。步骤}步新手任务完成成功，获得$ { VO 。数据。硬币}美妆币` ）
+            如果 （画外音。数据。步 ===  15 ） $ 。初始化 =  true
+            $ 。硬币 + =  vo 。数据。硬币
+          } 其他 {
+            控制台。日志（`新手任务完成失败，错误信息：$ { JSON 。字符串化（画外音）} ` ）
+          }
+          休息
+        案例 'get_question'：
+          const 问题 =  vo 。数据
+          让 commit  =  { }
+          for  （令 我 =  0 ; 我 < 问题。长度;  ++我） {
+            常量 QUES  = 问题[我]
+            提交[ ` $ { ques 。ID } ` ]  =  parseInt函数（疑问句。答案）
+          }
+          等待 $ 。等待（5000 ）
+          客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “承诺”：$ { JSON 。字符串化（提交）}， “正确”：$ {问题。长度} }，“行动“：” submit_answer“}}` ）
+          休息
+        案例 'complete_task'：
+        案例 “动作”：
+        案例 “ submit_answer”：
+        情况 “ check_up_receive”：
+        案例 “ shop_view”：
+        案例 “ add_product_view”：
+        案例 “ meetingplace_view”：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            控制台。日志（`任务完成成功，获得$ { VO 。数据。硬币}美妆币` ）
+            $ 。硬币 + =  vo 。数据。硬币
+            $ 。合计 =  vo 。数据。user_coins
+          } 其他 {
+            控制台。日志（`任务完成失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        情况 “ produce_position_info”：
+          如果 （画外音。数据。material_name！== '' ） {
+            控制台。日志（`【$ { VO 。数据。位置}】上正在生产【$ { VO 。数据。material_name }】，可收取$ { VO 。数据。produce_num }份` ）
+            如果 （VO 。数据。produce_num  >  0 ） {
+              控制台。log （`剩余份数大于0份，去接受` ）
+              客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “地位”： “ $ { VO 。数据。位置} ”， “replace_material”：假}， “行动”：“material_fetch “}}` ）
+              客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ to_employee”}}` ）
+              $ 。pos 。推（VO 。数据。位置）
+            }
+          } 其他 {
+            console.log(`【${vo.data.position}】上尚未开始生产`)
+            if (vo.data.valid_electric > 0) {
+              let ma = $.material.base[0]['items'][positionList.indexOf(vo.data.position)]
+              if (ma) {
+                控制台。日志（`去生产$ { MA 。名} ` ）
+                客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “地位”： “ $ { VO 。数据。位置} ”， “material_id”：$ {马。ID } }，”操作“：” material_produce“}}` ）
+              } 其他 {
+                ma = $.material.base[1]['items'][positionList.indexOf(vo.data.position)]
+                if (ma) {
+                  console.log(`去生产${ma.name}`)
+                  客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “地位”： “ $ { VO 。数据。位置} ”， “material_id”：$ {马。ID } }，”操作“：” material_produce“}}` ）
+                }
+              }
+            }
+          }
+          休息
+        案例 “ material_produce”：
+          控制台。日志（`【$ { VO 。数据。位置}】上开始生产$ { VO 。数据。material_name } ` ）
+          客户。发送（`{“ msg”：{“ type”：“ action”，“ args”：{}，“ action”：“ to_employee”}}` ）
+          $ 。pos 。推（VO 。数据。位置）
+          休息
+        情况 “ material_fetch”：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            控制台。日志（`【$ { VO 。数据。位置}】收取成功，获得$ { VO 。数据。过程。produce_num }份$ { VO 。数据。material_name } ` ）
+            $ 。硬币 + =  vo 。数据。硬币
+          } 其他 {
+            控制台。日志（`任务完成失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        案例 “ get_package”：
+          if (vo.code === '200' || vo.code === 200) {
+            // $.products = vo.data.product
+            $.materials = vo.data.material
+            let msg = `仓库信息:`
+            for (let material of $.materials) {
+              msg += `【${material.material.name}】${material.num}份 `
+            }
+            控制台。日志（msg ）
+          } 其他 {
+            控制台。日志（`仓库信息获取失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        案例 “ product_lists”：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            $ 。产品 =  vo 。数据
+            控制台。日志（`========可生产商品信息========` ）
+            for (let product of $.products) {
+              let num = Infinity
+              let msg = ''
+              msg += `生产【${product.name}】需要原料`
+              for (let material of product.product_materials) {
+                msg += `【${material.material.name}】${material.num} 份 `
+                const  ma  =  $ 。材料。过滤器（VO  =>  VO 。ITEM_ID  === 材料。material_id ）[ 0 ]
+                如果 （ma ） {
+                  msg  + =  `（库存$ { ma 。num }份）`
+                  num  = 数学。分钟（NUM ， 数学。TRUNC （毫安。NUM /材料。NUM ））
+                } 其他 {
+                  msg  + =  `（没有库存）`
+                  NUM  =  - 1000
+                }
+              }
+              如果 （num！==无限 &&  num  >  0 ） {
+                msg  + =  `，可生产$ { num }份`
+                控制台。日志（msg ）
+                控制台。日志（`【$ {产品。名}】可生产份数大于0，去生产` ）
+                客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “PRODUCT_ID”：$ {产品。ID }， “量”：$ { NUM } }， “行动”： “product_produce” }}` ）
+                等待 $ 。等待（500 ）
+              } 其他 {
+                控制台。日志（`【$ {产品。名}】原料不足，无法生产` ）
+              }
+            }
+            控制台。日志（ ``======================= ）
+          } 其他 {
+            控制台。日志（`生产信息获取失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        案例 “ product_produce”：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            控制台。日志（`生产成功` ）
+          } 其他 {
+            控制台。日志（`生产信息获取失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        情况 “ product_production”：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            对于 （让 产品 的 VO 。数据） {
+              如果 （产品。NUM  === 产物。produce_num ） {
+                客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “LOG_ID”：$ {产品。ID } }， “行动”： “product_fetch”}}` ）
+              } 其他 {
+                控制台。日志（`产品【$ {产品。产品。ID }】未生产完成，无法收取` ）
+              }
+            }
+          } 其他 {
+            控制台。日志（`生产商品信息获取失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        情况 “ product_fetch”：
+          如果 （VO 。代码 ===  '200'  ||  VO 。代码 ===  200 ） {
+            控制台。日志（`收取产品【$ { VO 。数据。产品。名}】$ { VO 。数据。NUM }份` ）
+          } 其他 {
+            控制台。日志（`收取产品失败，错误信息$ { VO 。味精} ` ）
+          }
+          休息
+        案例 “ get_task”：
+          控制台。日志（`当前任务【$ { VO 。数据。描述}】，需要【$ { VO 。数据。产品。名}】$ { VO 。数据。package_stock } / $ { VO 。数据。NUM }份` ）
+          如果 （VO 。数据。package_stock > = VO 。数据。NUM ） {
+            控制台。日志（`满足任务要求，去完成任务` ）
+            客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “TASK_ID”：$ { VO 。数据。ID } }， “行动”： “complete_task”}}` ）
+          }
+          休息
+        案例 'get_benefit'：
+          对于 （让 益处 的 VO 。数据） {
+            如果 （益处。键入 ===  1 ） {
+              控制台。日志（收益）
+              控制台。日志（`物品【$ {受益。说明}】需要$ {受益。硬币}美妆币，库存$ {受益。股票}份` ）
+              如果 （parseInt函数（效益。设置。beans_count ） === 豆 &&
+                $ 。总计 > 收益。硬币 &&
+                parseInt函数（益处。day_exchange_count ） < 益处。day_limit ） {
+                控制台。日志（`满足条件，去兑换` ）
+                客户。发送（`{ “味精”：{ “类型”： “行动”， “ARGS”：{ “benefit_id”：$ {受益。ID } }， “行动”： “to_exchange”}}` ）
+                等待 $ 。等待（1000 ）
+              }
+            }
+          }
+          休息
+        情况 “ to_exchange”：
+          控制台。日志（`兑换成功` ）
+          休息
+        案例 “ get_produce_material”：
+          $ 。材料 =  vo 。数据
+          休息
+        案例 “ to_employee”：
+          控制台。日志（`雇佣助力码【$ { VO 。数据。令牌}】` ）
+          $ 。令牌。推（VO 。数据。令牌）
+          休息
+        案例 “雇员”：
+          控制台。日志（` $ { VO 。味精} ` ）
+          休息
+      }
+    }
+  } ;
+}
+
+函数 getIsvToken （） {
+  让 config  =  {
+    网址：“ https://api.m.jd.com/client.action?functionId=genToken” ，
+    体：“体=％7B％22to％22％3A％22https％3A％5℃/％5℃/ xinruimz-isv.isvjcloud.com％5℃/信道％3Dmeizhuangguandibudaohang％26collectionId％3D96％26tttparams％3DYEyYQjMIeyJnTG5nIjoiMTE4Ljc2MjQyMSIsImdMYXQiOiIzMi4yNDE4ODIifQ8％253D 253D％％？ 26un_area％3D12_904_908_57903％26lng％3D118.7159742308471％26lat％3D32.2010317443041％22％2C％22action％22％3A％22to％22％7D＆构建= 167490＆客户=苹果＆客户机版本= 9.3.2＆openudid = 53f4d9c70c1c81f1c8769d2fe2fef0190a3f60d2＆OSVERSION = 14.2＆伙伴=苹果＆RFS = 0000＆范围= 01＆符号= b0aac3dd04b1c6d68cee3d425e27f480＆st = 1610161913667＆sv = 111' ，
+    标头：{
+      '主机'：'api.m.jd.com' ，
+      'accept'：'* / *' ，
+      'user-agent'：'JD4iPhone / 167490（iPhone; iOS 14.2; Scale / 3.00）' ，
+      'accept-language'：'zh-Hans-JP; q = 1，en-JP; q = 0.9，zh-Hant-TW; q = 0.8，ja-JP; q = 0.7，en-US; q = 0.6 ' ，
+      'content-type'：'application / x-www-form-urlencoded' ，
+      Cookie：Cookie
+    }
+  }
+  返回 新的 Promise （resolve  =>  {
+    $ 。post （config ， async  （err ， resp ， data ） =>  {
+      尝试 {
+        if (err) {
+          console.log(`${err},${jsonParse(resp.body)['message']}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
+        } else {
+          if (safeGet(data)) {
+            data = JSON.parse(data);
+            $ 。isvToken  =  data [ 'tokenKey' ]
+          }
+        }
+      } 抓住 （e ） {
+        $ 。logErr （e ， resp ）
+      } 最后 {
+        解决（数据）;
+      }
+    } ）
+  } ）
+}
+
+函数 getIsvToken2 （） {
+  让 config  =  {
+    网址：“ https://api.m.jd.com/client.action?functionId=isvObfuscator” ，
+    body：'body =％7B％22url％22％3A％22https％3A％5C /％5C / xinruimz-isv.isvjcloud.com％22％2C％22id％22％3A％22％22％7D＆build = 167490＆client = apple＆clientVersion = 9.3.2＆openudid = 53f4d9c70c1c81f1c8769d2fe2fef0190a3f60d2＆OSVERSION = 14.2＆伙伴=苹果＆RFS = 0000＆范围= 01＆符号= 6eb3237cff376c07a11c1e185761d073＆ST = 1610161927336＆SV = 102＆UUID = hjudwgohxzVu96krv / T6Hg％3D％3D” ，
+    标头：{
+      '主机'：'api.m.jd.com' ，
+      'accept'：'* / *' ，
+      'user-agent'：'JD4iPhone / 167490（iPhone; iOS 14.2; Scale / 3.00）' ，
+      'accept-language'：'zh-Hans-JP; q = 1，en-JP; q = 0.9，zh-Hant-TW; q = 0.8，ja-JP; q = 0.7，en-US; q = 0.6 ' ，
+      'content-type'：'application / x-www-form-urlencoded' ，
+      Cookie：Cookie
+    }
+  }
+  返回 新的 Promise （resolve  =>  {
+    $ 。post （config ， async  （err ， resp ， data ） =>  {
+      尝试 {
+        如果 （err ） {
+          console.log(`${err},${jsonParse(resp.body)['message']}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
+        } else {
+          if (safeGet(data)) {
+            data = JSON.parse(data);
+            $.token2 = data['token']
+          }
+        }
+      } 抓住 （e ） {
+        $ 。logErr （e ， resp ）
+      } 最后 {
+        解决（数据）;
+      }
+    } ）
+  } ）
+}
+
+函数 getToken （） {
+  让 config  =  {
+    网址：'https : //xinruimz-isv.isvjcloud.com/api/auth' ，
+    身体：`{ “令牌”： “ $ { $ 。token2 } ”， “源”： “01”}` ，
+    标头：{
+      '主机'：'xinruimz-isv.isvjcloud.com' ，
+      '接受'：'application / x.jd-school-island.v1 + json' ，
+      '来源'：'02' ，
+      'Accept-Language'：'zh-cn' ，
+      'Content-Type'：'application / json; charset = utf-8' ，
+      'Origin'：'https : //xinruimz-isv.isvjcloud.com' ，
+      'User-Agent'：'JD4iPhone / 167490（iPhone; iOS 14.2; Scale / 3.00）' ，
+      'Referer'：'https : //xinruimz-isv.isvjcloud.com/logined_jd/ ' ，
+      'Cookie'：` $ { cookie } isvToken = $ { $ 。isvToken } ;`
+    }
+  }
+  返回 新的 Promise （resolve  =>  {
+    $ 。post （config ， async  （err ， resp ， data ） =>  {
+      尝试 {
+        如果 （err ） {
+          console.log(`${err},${jsonParse(resp.body)['message']}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
+        } else {
+          if (safeGet(data)) {
+            data = JSON.parse(data);
+            $.token = data.access_token
+          }
+        }
+      } catch (e) {
+        $.logErr(e, resp)
+      } finally {
+        resolve(data);
+      }
+    })
+  })
+}
+
+function showMsg() {
+  return new Promise(resolve => {
+    message += `本次运行获得美妆币${$.coins}枚`;
+    $ 。MSG （$ 。名， '' ， `京东账号$ { $ 。索引} $ { $ 。昵称} \ n $ {消息} ` ）;
+    解决（）
+  } ）
+}
+
+函数 TotalBean （） {
+  返回 新的 Promise （异步 resolve  =>  {
+    const  options  =  {
+      “ url”：`https：//wq.jd.com/user/info/QueryJDUserInfo？sceneval = 2` ，
+      “标题”：{
+        “ Accept”：“ application / json，text / plain，* / *” ，
+        “ Content-Type”：“ application / x-www-form-urlencoded” ，
+        “ Accept-Encoding”：“ gzip，deflate，br” ，
+        “ Accept-Language”：“ zh-cn” ，
+        “连接”：“保持活动” ，
+        “ Cookie”：cookie ，
+        “ Referer”：“ https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2” ，
+        “用户代理”：$ 。isNode （）？（过程。ENV 。JD_USER_AGENT？过程。ENV 。JD_USER_AGENT：“jdapp; iPhone; 9.2.2; 14.2;％E4％BA％AC％E4％B8％9C / 9.2.2 CFNetwork的/ 1206达尔文/ 20.1.0” ）：（（$ 。getdata （'JDUA' ）？$ 。getdata （'JDUA' ）：“ jdapp; iPhone; 9.2.2; 14.2;％E4％BA％AC％E4％B8％9C / 9.2.2 CFNetwork / 1206达尔文/20.1.0“ ）
+      }
+    }
+    $.post(options, (err, resp, data) => {
+      try {
+        if (err) {
+          console.log(`${JSON.stringify(err)}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
+        } else {
+          if (data) {
+            data = JSON.parse(data);
+            if (data['retcode'] === 13) {
+              $.isLogin = false; //cookie过期
+              return
+            }
+            $.nickName = data['base'].nickname;
+          } else {
+            console.log(`京东服务器返回空数据`)
+          }
+        }
+      } catch (e) {
+        $.logErr(e, resp)
+      } finally {
+        resolve();
+      }
+    })
+  })
+}
+
+function safeGet(data) {
+  try {
+    if (typeof JSON.parse(data) == "object") {
+      return true;
+    }
+  } catch (e) {
+    console.log(e);
+    console.log(`京东服务器访问数据为空，请检查自身设备网络情况`);
+    return false;
+  }
+}
+
+function jsonParse(str) {
+  if (typeof str == "string") {
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      console.log(e);
+      $.msg($.name, '', '不要在BoxJS手动复制粘贴修改cookie')
+      return [];
+    }
+  }
+}
+
+// prettier-ignore
+function Env(t, e) {
+  class s {
+    构造函数（t ） {
+      这个。env  =  t
+    }
+
+    发送（t ， e =  “ GET” ） {
+      t  =  “ string”  ==  typeof  t？{ url：t }：t ;
+      让 s  =  this 。得到;
+      返回 “POST”  ===  È  &&  （小号 = 此。交）， 新 无极（（ê ， 我） =>  {
+        s 。呼叫（this ， t ， （t ， s ， r ） =>  {
+          牛逼？i （t ）：e （s ）
+        } ）
+      } ）
+    }
+
+    得到（t ） {
+      return this.send.call(this.env, t)
+    }
+
+    post(t) {
+      return this.send.call(this.env, t, "POST")
+    }
+  }
+
+  return new class {
+    constructor(t, e) {
+      这个。名字 =  t ， 这个。http  =  new  s （this ）， 这个。数据 =  null ， 这。dataFile  =  “ box.dat” ， 这个。原木 =  [ ] ， 这个。isMute  =！1 ， 这个。isNeedRewrite  =！1 ， 这个。logSeparator  =  “ \ n”， 这个。startTime  =  （新 日期）。getTime （）， 对象。分配（此， ê ）， 此。日志（“” ， “ \ ud83d \ udd14 $ {此。名称}，\ u5f00 \ u59cb！” ）
+    }
+
+    isNode （） {
+      返回 “未定义”！= typeof 模块 && !! 模块。出口商品
+    }
+
+    isQuanX （） {
+      返回 “未定义”！= typeof  $ task
+    }
+
+    isSurge （） {
+      返回 “ undefined”！= typeof  $ httpClient  &&  “ undefined”  ==  typeof  $ loon
+    }
+
+    isLoon （） {
+      返回 “未定义”！= typeof  $ loon
+    }
+
+    toObj （t ， e =  null ） {
+      尝试 {
+        返回 JSON 。解析（t ）
+      } 赶上 {
+        返回 e
+      }
+    }
+
+    toStr （t ， e =  null ） {
+      尝试 {
+        返回 JSON 。串（t ）
+      } 赶上 {
+        返回 e
+      }
+    }
+
+    getjson （t ， e ） {
+      令 s  =  e ;
+      const  i  =  this 。getdata （t ）;
+      如果 （i ） 尝试 {
+        s  =  JSON 。解析（此。的GetData （吨））
+      } 赶上 {
+      }
+      返回 s
+    }
+
+    setjson （t ， e ） {
+      尝试 {
+        返回 这个。使用setData （JSON 。字符串化（吨）， È ）
+      } 赶上 {
+        退货！1个
+      }
+    }
+
+    getScript （t ） {
+      返回 新的 承诺（e  =>  {
+        这个。get （{ url：t } ， （t ， s ， i ） =>  e （i ））
+      } ）
+    }
+
+    runScript （t ， e ） {
+      返回 新的 Promise （s  =>  {
+        让 我 = 这个。getdata （“ @ chavy_boxjs_userCfgs.httpapi” ）;
+        我 = 我？我。替换（/ \ n / g ， “” ）。修剪（）：i ;
+        令 r  =  this 。getdata （“ @ chavy_boxjs_userCfgs.httpapi_timeout” ）；
+        r  =  r？1 * r：20 ， r  =  e  &&  e 。超时？e 。超时：r ;
+        const  [ o ， h ]  =  i 。分割（“ @” ）， a  =  {
+          url：`http：// $ { h } / v1 / scripting / evaluate` ，
+          正文：{ script_text：t ， mock_type：“ cron” ， 超时：r } ，
+          标头：{ “ X-Key”：o ， Accept：“ * / *” }
+        } ;
+        这个。发布（a ， （t ， e ， i ） =>  s （i ））
+      } ）。捕捉（吨 => 此。LOGERR （吨））
+    }
+
+    loaddata （） {
+      如果 （！此。isNode （）） 返回 { } ;
+      {
+        这个。fs  =  this 。fs？这个。fs：require （“ fs” ）， 这个。路径 = 这个。路径？这个。路径：require （“ path” ）;
+        const  t  =  this 。路径。解决（此。数据文件）， ê  = 此。路径。解决（过程。CWD （）， 这个。数据文件），
+          s  =  this 。fs 。existSync （t ）， 我 =！s  &&  this 。fs 。existSync （e ）;
+        如果 （！s  &&！i ） 返回 { } ;
+        {
+          const  i  =  s吗？t：e ;
+          尝试 {
+            返回 JSON 。解析（此。FS 。readFileSync （我））
+          } 抓 （t ） {
+            返回 { }
+          }
+        }
+      }
+    }
+
+    writedata （） {
+      如果 （此。isNode （）） {
+        这个。fs  =  this 。fs？这个。fs：require （“ fs” ）， 这个。路径 = 这个。路径？这个。路径：require （“ path” ）;
+        const  t  =  this 。路径。解决（此。数据文件）， ê  = 此。路径。解决（过程。CWD （）， 这个。数据文件），
+          s  =  this 。fs 。existSync （t ）， 我 =！s  &&  this 。fs 。existSync （e ）， r  =  JSON 。字符串化（此。数据）;
+        s？这个。fs 。writeFileSync （t ， r ）：我？这个。fs 。writeFileSync （e ， r ）：这个。fs 。writeFileSync （t ， r ）
+      }
+    }
+
+    lodash_get （t ， e ， s ） {
+      const i = e.replace(/\[(\d+)\]/g, ".$1").split(".");
+      let r = t;
+      for (const t of i) if (r = Object(r)[t], void 0 === r) return s;
+      return r
+    }
+
+    lodash_set(t, e, s) {
+      返回 Object （t ）！== t？吨：（阵列。IsArray的（ê ） ||  （É  =  Ë 。的toString （）。匹配（/ [ ^ [ \] ] + /克） ||  [ ] ）， ê 。切片（0 ， - 1 ）。减少（（吨， s ， i ） => 对象（t [ s ] ） ===  t [ s ]？t [ s ]：t [ s ]  = 数学。abs （e [ i  +  1 ] ） >>  0  ==  + e [ i  +  1 ]？[ ]：{ } ， t ）[è [ è 。长度 -  1 ] ]  = 小号， 吨）
+    }
+
+    getdata （t ） {
+      让 e  =  this 。getval （t ）;
+      如果 （/ ^ @ / 。试验（吨）） {
+        const  [ ， s ， i ]  =  / ^ @ （。*？）\。（。*？）$ / 。exec （t ）， r  =  s？这个。getval （s ）：“” ;
+        如果 （r ） 尝试 {
+          const  t  =  JSON 。解析（r ）;
+          Ë  = 吨？这个。lodash_get （t ， i ， “” ）：e
+        } 抓 （t ） {
+          e  =  “”
+        }
+      }
+      返回 e
+    }
+
+    setdata （t ， e ） {
+      让 s  =！1 ;
+      如果 （/ ^ @ / 。测试（e ）） {
+        const  [ ， i ， r ]  =  / ^ @ （。*？）\。（。*？）$ / 。exec （e ）， o  = 此。getval （i ）， h  = 我？“ null”  ===  o？null：o  ||  “ {}”：“ {}” ;
+        尝试 {
+          const e = JSON.parse(h);
+          this.lodash_set(e, r, t), s = this.setval(JSON.stringify(e), i)
+        } catch (e) {
+          const o = {};
+          this.lodash_set(o, r, t), s = this.setval(JSON.stringify(o), i)
+        }
+      } else s = this.setval(t, e);
+      return s
+    }
+
+    getval(t) {
+      返回 这个。isSurge （） ||  这个。isLoon （）？$ persistentStore 。读（t ）：这个。isQuanX （）？$ prefs 。valueForKey （t ）：这个。isNode （）？（此。数据 = 此。loaddata （）， 此。数据[ t ] ）：这个。数据 && 此。数据[ t ]  ||  空值
+    }
+
+    setval （t ， e ） {
+      返回 这个。isSurge （） ||  这个。isLoon （）？$ persistentStore 。写（t ， e ）：这个。isQuanX （）？$ prefs 。setValueForKey （t ， e ）：这个。isNode （）？（此。数据 = 此。loaddata （）， 这个。数据[ e ]  =  t ， 这个。写数据（），！0 ）：这个。数据 && 此。数据[ e ]  ||  空值
+    }
+
+    initGotEnv （t ） {
+      这个。得到 = 这个。得到了？这个。得到了：require （“ got” ）， 这个。cktough  = 这个。cktough？这个。cktough：要求（“强硬曲奇” ）， 本。ckjar  =  this 。ckjar？这个。ckjar：新 本。cktough 。饼干罐， 吨 &&  （吨。标题 = 吨。标题？吨。标题：{ } ， 空隙 0  === 吨。头。曲奇 && 空隙 0  === 吨。cookieJar  &&  （吨。cookieJar  = 此。ckjar ））
+    }
+
+    得到（t ， e =  （（） =>  {
+    } ）） {
+      Ť 。头 &&  （删除 吨。标题[ “内容类型” ] ， 删除 吨。标题[ “内容长度” ] ）， 该。isSurge （） ||  这个。isLoon （）？（此。isSurge （） && 此。isNeedRewrite  &&  （吨。标题 = 吨。头 ||  { } ， 对象。分配（t 。标头， { “ X-Surge-Skip-Scripting”：！1 } ）））， $ httpClient 。get （t ， （t ， s ， i ） =>  {
+        ！吨 && 小号 &&  （小号。身体 = 我， 小号。的StatusCode  = 小号。状态）， È （吨， s ^ ， 我）
+      } ））：这个。isQuanX （）？（此。isNeedRewrite  &&  （吨。OPTS  = 吨。OPTS  ||  { } ， 对象。分配（吨。OPTS ， {提示：1 } ））， $任务。取（吨）。然后（吨 =>  {
+        const  { statusCode：s ， statusCode：i ， 标头：r ， body：o }  =  t ;
+        e （null ， { status：s ， statusCode：i ， headers：r ， body：o } ， o ）
+      } ， t  =>  e （t ）））：这个。isNode （） &&  （此。initGotEnv （吨）， 此。得到（吨）。在（“重定向” ， （吨， ê ） =>  {
+        尝试 {
+          if  （t 。标头[ “ set-cookie” ] ） {
+            const s = t.headers["set-cookie"].map(this.cktough.Cookie.parse).toString();
+            this.ckjar.setCookieSync(s, null), e.cookieJar = this.ckjar
+          }
+        } catch (t) {
+          this.logErr(t)
+        }
+      } ）。然后（t  =>  {
+        const  { statusCode：s ， statusCode：i ， 标头：r ， body：o }  =  t ;
+        e （null ， { status：s ， statusCode：i ， headers：r ， body：o } ， o ）
+      } ， t  =>  {
+        const  {消息：s ， 响应：i }  =  t ;
+        È （小号， 我， 我 && 我。体）
+      } ））
+    }
+
+    发布（t ， e =  （（） =>  {
+    } ）） {
+      if  （t 。正文 &&  t 。头文件 &&！t 。头文件[ “ Content-Type” ]  &&  （t 。头文件[ “ Content-Type” ]  =  “ application / x-www-form-urlencoded” ）， t 。头文件 && 删除 吨。标题[ “内容长度” ] ， 此。isSurge （） || 此。isLoon （）） 这个。isSurge （） && 此。isNeedRewrite  &&  （吨。标题 = 吨。标题 ||  { } ， 对象。分配（吨。头， { “X-浪涌跳过-脚本”：1 } ））， $ HttpClient的。帖子（t ， （t ， s ， i ） => {
+        ！吨 && 小号 &&  （小号。身体 = 我， 小号。的StatusCode  = 小号。状态）， È （吨， s ^ ， 我）
+      } ）;  否则 ，如果 （这个。isQuanX （）） 牛逼。方法 =  “ POST” ， this 。isNeedRewrite  &&  （牛逼。OPTS  = 牛逼。OPTS  ||  { } ， 对象，分配（牛逼。OPTS ， {提示：1 } ））， $任务。取（t ）。然后（t  =>  {
+        const  { statusCode：s ， statusCode：i ， 标头：r ， body：o }  =  t ;
+        e （null ， { status：s ， statusCode：i ， headers：r ， body：o } ， o ）
+      } ， t  =>  e （t ））;  否则 ，如果 （这个。isNode （）） {
+        这个。initGotEnv （t ）;
+        const  { url：s ， ... i }  =  t ;
+        这个。得到了。发布（s ， i ）。然后（t  =>  {
+          const  { statusCode：s ， statusCode：i ， 标头：r ， body：o }  =  t ;
+          e （null ， { status：s ， statusCode：i ， headers：r ， body：o } ， o ）
+        } ， t  =>  {
+          const  {消息：s ， 响应：i }  =  t ;
+          È （小号， 我， 我 && 我。体）
+        } ）
+      }
+    }
+
+    时间（t ） {
+      令 e  =  {
+        “M +” ：（新 日期）。getMonth （） +  1 ，
+        “d +” ：（新 日期）。getDate （），
+        “H +” ：（新 日期）。getHours （），
+        “M +” ：（新 的日期）。getMinutes （），
+        “S +” ：（新 日期）。getSeconds （），
+        “ q +”：数学。地板（（（新 日期）。得到月（） +  3 ） / 3 ），
+        小号：（新 日期）。getMilliseconds （）
+      } ;
+      / （ y + ） / 。测试（吨） &&  （吨 = 吨。代替（正则表达式。$ 1 ， （（新 日期）。和getFullYear （） +  “” ）。 SUBSTR （4 -正则表达式。$ 1 。长度）））;  
+      对于 （让 小号 在 ë ） 新的 正则表达式（“（”  + 小号 +  “）” ）。 测试（吨）&& （吨=吨。代替（正则表达式。$ 1 ，1 ==正则表达式。$ 1 。长度？ë [小号]：（“00” + ë [小号] ）。SUBSTR （         （“”  +  e [ s ] ）。长度）））;
+      返回 t
+    }
+
+    msg （ e =  t ， s =  “” ， i =  “” ， r ） {
+      const  o  =  t  =>  {
+        如果 （！t ） 返回 t ;
+        if  （“ string”  ==  typeof  t ） 返回 this 。isLoon （）？t：这个。isQuanX （）？{ “ open-url”：t }：此。isSurge （）？{ url：t }：无效 0 ;
+        if  （“ object”  ==  typeof  t ） {
+          如果 （此。isLoon （）） {
+            令 e  =  t 。openUrl  ||  Ť 。网址 ||  t [ “ open-url” ] ， s  =  t 。mediaUrl  ||  t [ “ media-url” ] ;
+            返回 { openUrl：e ， mediaUrl：s }
+          }
+          如果 （此。isQuanX （）） {
+            令 e  =  t [ “ open-url” ]  ||  Ť 。网址 ||  Ť 。openUrl ， s  =  t [ “ media-url” ]  ||  Ť 。mediaUrl ;
+            return  { “ open-url”：e ， “ media-url”：s }
+          }
+          如果 （此。isSurge （）） {
+            令 e  =  t 。网址 ||  Ť 。openUrl  ||  t [ “ open-url” ] ;
+            返回 { url：e }
+          }
+        }
+      } ;
+      这个。isMute  ||  （此。isSurge （） || 此。isLoon （）？$通知。后（ē ， s ^ ， 我， Ô （[R ））：此。isQuanX （）&& $通知（ē ，s ^ ，我，Ô （[R ）））;     
+      令 h  =  [ “” ， “ ============== \ ud83d \ udce3 \ u7cfb \ u7edf \ u901a \ u77e5 \ ud83d \ udce3 ============ ==“ ] ;
+      ^ h 。推（e ）， s  &&  h 。推（s ）， i  &&  h 。推（i ）， 控制台。日志（^ h 。加入（“\ n” ）），这个。日志= this 。日志。连续（h ）   
+    }
+
+    日志（ ... t ） {
+      Ť 。长度 >  0  &&  （此。日志 =  [ ...此。原木， ...吨] ）， 控制台。日志（牛逼。加入（此。logSeparator ））
+    }
+
+    logErr （t ， e ） {
+      const  s  =！这个。isSurge （） &&！这个。isQuanX （） &&！这个。isLoon （）;
+      s？这个。日志（“” ， '\ u2757 \ ufe0f $ {这个。名字}，\ u9519 \ u8bef`！ ， 牛逼。栈）：此。日志（“” ， '\ u2757 \ ufe0f $ {这个。名字}，\ u9519 \ u8bef！` ， 牛逼）
+    }
+
+    等待（t ） {
+      返回 新的 Promise （e  =>  setTimeout （e ， t ））
+    }
+
+    完成（ t =  { } ） {
+      const  e  =  （新 日期）。的getTime （）， š  =  （ë  - 此。STARTTIME ） / 1E3 ;
+      这个。日志（“ ， ” \ ud83d \ udd14 $ {这个。名称}，\ u7ed3 \ u675f！\ ud83d \ udd5b $ { s } \ u79d2` ）， 这个。日志（）， （此。isSurge （） || 此。isQuanX （） || 此。isLoon （）） &&  $完成（牛逼）
